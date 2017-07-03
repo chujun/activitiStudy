@@ -1,13 +1,15 @@
 package com.jun.chu.demo.controller;
 
-import com.jun.chu.demo.bean.DeploymentBean;
-import com.jun.chu.demo.bean.ProcessDefinitionBean;
+import com.jun.chu.demo.bean.vo.DeploymentVo;
+import com.jun.chu.demo.bean.vo.ProcessDefinitionVo;
 import com.jun.chu.demo.bean.WorkFlowBean;
+import com.jun.chu.demo.bean.vo.TaskVo;
 import com.jun.chu.demo.service.WorkFlowService;
 import com.jun.chu.demo.util.JsonUtils;
 import org.activiti.engine.impl.util.CollectionUtil;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
+import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -29,13 +31,13 @@ public class MyController {
     private WorkFlowService workFlowService;
 
     @RequestMapping(value = "/deployments", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<DeploymentBean> getTasks() {
+    public List<DeploymentVo> getTasks() {
         List<Deployment> deployments = workFlowService.findDeployments();
         return buildDeploymentBeanList(deployments);
     }
 
     @RequestMapping(value = "/processDefinitions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<ProcessDefinitionBean> getProcessDefinitions() {
+    public List<ProcessDefinitionVo> getProcessDefinitions() {
         List<ProcessDefinition> processDefinitions = workFlowService.findProcessDefinitions();
         return buildProcessDefinitionBeanList(processDefinitions);
     }
@@ -50,11 +52,112 @@ public class MyController {
 
     @RequestMapping(value = "/processDefinitionDiagram/{processDefinitionId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public void viewProcessDefinitionDiagram(HttpServletResponse response, @RequestBody WorkFlowBean workFlowBean,
-                                             @PathVariable String processDefinitionId) throws IOException {
+                                             @PathVariable String processDefinitionId)
+            throws IOException {
         System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
 
         InputStream diagramInputStream = workFlowService.viewProcessDefinitionDiagram(processDefinitionId);
         outputDiagram(response, diagramInputStream);
+    }
+
+    @RequestMapping(value = "/processInstance/leaveBill/{leaveBillId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public void startProcessInstance(@RequestBody WorkFlowBean workFlowBean, @PathVariable Long leaveBillId)
+            throws IOException {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+
+        workFlowService.startProcessInstance(leaveBillId);
+    }
+
+    @RequestMapping(value = "/tasks", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<TaskVo> findTask(@RequestBody WorkFlowBean workFlowBean) throws IOException {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+
+        List<Task> tasks = workFlowService.findTaskByAssignee(workFlowBean.getUserName());
+        return buildTaskVoList(tasks);
+    }
+
+    private List<TaskVo> buildTaskVoList(List<Task> tasks) {
+        if (CollectionUtil.isEmpty(tasks)) {
+            return Collections.emptyList();
+        }
+        List<TaskVo> result = new ArrayList<TaskVo>();
+        for (Task item : tasks) {
+            result.add(buildTaskVo(item));
+        }
+        return result;
+    }
+
+    private TaskVo buildTaskVo(Task item) {
+        if (item == null) {
+            return null;
+        }
+        TaskVo result = new TaskVo();
+        result.setId(item.getId());
+        result.setName(item.getName());
+        result.setCategory(item.getCategory());
+        result.setAssignee(item.getAssignee());
+        result.setOwner(item.getOwner());
+        result.setCreateTime(item.getCreateTime());
+        result.setClaimTime(item.getClaimTime());
+        result.setFormKey(item.getFormKey());
+        result.setPriority(item.getPriority());
+        result.setProcessDefinitionId(item.getProcessDefinitionId());
+        result.setProcessInstanceId(item.getProcessInstanceId());
+        return result;
+    }
+
+    private List<ProcessDefinitionVo> buildProcessDefinitionBeanList(List<ProcessDefinition> processDefinitions) {
+        if (CollectionUtil.isEmpty(processDefinitions)) {
+            return Collections.emptyList();
+        }
+        List<ProcessDefinitionVo> result = new ArrayList<ProcessDefinitionVo>();
+        for (ProcessDefinition item : processDefinitions) {
+            result.add(buildProcessDefinitionBean(item));
+        }
+        return result;
+    }
+
+    private ProcessDefinitionVo buildProcessDefinitionBean(ProcessDefinition item) {
+        if (item == null) {
+            return null;
+        }
+        ProcessDefinitionVo result = new ProcessDefinitionVo();
+        result.setId(item.getId());
+        result.setName(item.getName());
+        result.setKey(item.getKey());
+        result.setDeploymentId(item.getDeploymentId());
+        result.setDescription(item.getDescription());
+        result.setResourceName(item.getResourceName());
+        result.setDiagramResourceName(item.getDiagramResourceName());
+        result.setVersion(item.getVersion());
+        return result;
+    }
+
+    //////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    private List<DeploymentVo> buildDeploymentBeanList(List<Deployment> deployments) {
+        if (CollectionUtil.isEmpty(deployments)) {
+            return Collections.emptyList();
+        }
+        List<DeploymentVo> result = new ArrayList<DeploymentVo>();
+        for (Deployment deployment : deployments) {
+            result.add(buildDeploymentBean(deployment));
+        }
+        return result;
+    }
+
+    private DeploymentVo buildDeploymentBean(Deployment deployment) {
+        if (deployment == null) {
+            return null;
+        }
+        DeploymentVo result = new DeploymentVo();
+        result.setId(deployment.getId());
+        result.setName(deployment.getName());
+        result.setCategory(deployment.getCategory());
+        result.setDeploymentTime(deployment.getDeploymentTime());
+        result.setKey(deployment.getKey());
+        result.setTenantId(deployment.getTenantId());
+        return result;
     }
 
     private void outputDiagram(HttpServletResponse response, InputStream diagramInputStream) throws IOException {
@@ -82,59 +185,5 @@ public class MyController {
                 e.printStackTrace();
             }
         }
-    }
-
-    private List<ProcessDefinitionBean> buildProcessDefinitionBeanList(List<ProcessDefinition> processDefinitions) {
-        if (CollectionUtil.isEmpty(processDefinitions)) {
-            return Collections.emptyList();
-        }
-        List<ProcessDefinitionBean> result = new ArrayList<ProcessDefinitionBean>();
-        for (ProcessDefinition item : processDefinitions) {
-            result.add(buildProcessDefinitionBean(item));
-        }
-        return result;
-    }
-
-    private ProcessDefinitionBean buildProcessDefinitionBean(ProcessDefinition item) {
-        if (item == null) {
-            return null;
-        }
-        ProcessDefinitionBean result = new ProcessDefinitionBean();
-        result.setId(item.getId());
-        result.setName(item.getName());
-        result.setKey(item.getKey());
-        result.setDeploymentId(item.getDeploymentId());
-        result.setDescription(item.getDescription());
-        result.setResourceName(item.getResourceName());
-        result.setDiagramResourceName(item.getDiagramResourceName());
-        result.setVersion(item.getVersion());
-        return result;
-    }
-
-    //////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-    private List<DeploymentBean> buildDeploymentBeanList(List<Deployment> deployments) {
-        if (CollectionUtil.isEmpty(deployments)) {
-            return Collections.emptyList();
-        }
-        List<DeploymentBean> result = new ArrayList<DeploymentBean>();
-        for (Deployment deployment : deployments) {
-            result.add(buildDeploymentBean(deployment));
-        }
-        return result;
-    }
-
-    private DeploymentBean buildDeploymentBean(Deployment deployment) {
-        if (deployment == null) {
-            return null;
-        }
-        DeploymentBean result = new DeploymentBean();
-        result.setId(deployment.getId());
-        result.setName(deployment.getName());
-        result.setCategory(deployment.getCategory());
-        result.setDeploymentTime(deployment.getDeploymentTime());
-        result.setKey(deployment.getKey());
-        result.setTenantId(deployment.getTenantId());
-        return result;
     }
 }

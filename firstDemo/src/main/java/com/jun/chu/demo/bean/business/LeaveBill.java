@@ -22,8 +22,6 @@ public class LeaveBill {
 
     private Integer state ;//请假状态,0:初始状态,1:开始审核,2:审批完成
 
-
-
     public String getManagerName() {
         return managerName;
     }

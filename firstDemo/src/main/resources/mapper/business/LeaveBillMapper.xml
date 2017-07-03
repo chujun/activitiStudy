@@ -98,6 +98,7 @@
             <if test="pojo.days != null"> `days` = #{pojo.days}, </if>
             <if test="pojo.content != null"> `content` = #{pojo.content}, </if>
             <if test="pojo.remark != null"> `remark` = #{pojo.remark}, </if>
+            <if test="pojo.state != null"> `state` = #{pojo.state}, </if>
         </set>
         WHERE id = #{pojo.id}
     </update>
@@ -109,6 +110,10 @@
 
     <select id="queryAll" resultMap="AllColumnMap">
         select * from leave_bill
+    </select>
+
+    <select id="findById" resultMap="AllColumnMap">
+        select * from leave_bill where id=#{id}
     </select>
 </mapper>
 

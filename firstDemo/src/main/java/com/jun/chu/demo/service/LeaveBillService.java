@@ -1,6 +1,7 @@
 package com.jun.chu.demo.service;
 
 import com.jun.chu.demo.bean.business.LeaveBill;
+import com.jun.chu.demo.enm.LeaveBillStateEnum;
 import com.jun.chu.demo.util.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.SourceExtractor;
@@ -39,6 +40,7 @@ public class LeaveBillService {
         return updateCount;
     }
 
+    @Transactional("business")
     public int delete(LeaveBill pojo) {
         int count = leaveBillDao.delete(pojo);
         if (count > 0) {
@@ -64,7 +66,7 @@ public class LeaveBillService {
 
     private void initLeaveBill(LeaveBill pojo) {
         pojo.setCreateAt(new Date());
-        pojo.setState(0);
+        pojo.setState(LeaveBillStateEnum.INIT.getValue());
         pojo.setManagerName(employeeService.getManagerNameByUserName(pojo.getUserName()));
     }
 
@@ -76,4 +78,7 @@ public class LeaveBillService {
         return leaveBillDao.insertList(pojos);
     }
 
+    public LeaveBill findLeaveBillById(Long id) {
+        return leaveBillDao.findById(id);
+    }
 }

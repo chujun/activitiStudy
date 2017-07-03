@@ -19,4 +19,6 @@ public interface LeaveBillDao {
     List<LeaveBill> queryAll();
 
     int delete(@Param("pojo")LeaveBill pojo);
+
+    LeaveBill findById(Long id);
 }

@@ -1,4 +1,4 @@
-package com.jun.chu.demo.bean;
+package com.jun.chu.demo.bean.vo;
 
 import org.activiti.engine.repository.Deployment;
 
@@ -7,7 +7,7 @@ import java.util.Date;
 /**
  * Created by chujun on 2017/7/3.
  */
-public class DeploymentBean implements Deployment {
+public class DeploymentVo implements Deployment {
     private String id;
 
     private String name;

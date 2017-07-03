@@ -1,11 +1,11 @@
-package com.jun.chu.demo.bean;
+package com.jun.chu.demo.bean.vo;
 
 import org.activiti.engine.repository.ProcessDefinition;
 
 /**
  * Created by chujun on 2017/7/3.
  */
-public class ProcessDefinitionBean implements ProcessDefinition {
+public class ProcessDefinitionVo implements ProcessDefinition {
     private String id;
 
     private String name;
