@@ -17,7 +17,6 @@ public class LeaveBillController {
     @Autowired
     private LeaveBillService leaveBillService;
 
-
     @RequestMapping(value = "/leaveBill", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public void addLeaveBill(@RequestBody LeaveBill leaveBill) {
         leaveBillService.insert(leaveBill);
