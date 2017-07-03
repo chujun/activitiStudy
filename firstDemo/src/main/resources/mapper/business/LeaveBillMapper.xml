@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jun.chu.demo.dao.business.LeaveBillDao">
+    <!--auto generated Code-->
+    <resultMap id="AllColumnMap" type="com.jun.chu.demo.bean.business.LeaveBill">
+        <result column="manager_name" property="managerName"/>
+        <result column="id" property="id"/>
+        <result column="days" property="days"/>
+        <result column="content" property="content"/>
+        <result column="create_at" property="createAt"/>
+        <result column="remark" property="remark"/>
+        <result column="user_name" property="userName"/>
+        <result column="state" property="state"/>
+    </resultMap>
+
+    <!--auto generated Code-->
+    <sql id="all_column">
+        `manager_name`,
+        `id`,
+        `days`,
+        `content`,
+        `create_at`,
+        `remark`,
+        `user_name`,
+        `state`
+    </sql>
+
+    <!--auto generated Code-->
+    <insert id="insert">
+        INSERT INTO leave_bill (
+            `manager_name`,
+            `days`,
+            `content`,
+            `create_at`,
+            `remark`,
+            `user_name`,
+            `state`
+        ) VALUES (
+            #{pojo.managerName},
+            #{pojo.days},
+            #{pojo.content},
+            #{pojo.createAt},
+            #{pojo.remark},
+            #{pojo.userName},
+            #{pojo.state}
+        )
+    </insert>
+
+    <!--auto generated Code-->
+    <insert id="insertSelective" useGeneratedKeys="true" keyProperty="pojo.id">
+        INSERT INTO leave_bill
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="pojo.managerName!=null"> `manager_name`,</if>
+            <if test="pojo.id!=null"> `id`,</if>
+            <if test="pojo.days!=null"> `days`,</if>
+            <if test="pojo.content!=null"> `content`,</if>
+            <if test="pojo.createAt!=null"> `create_at`,</if>
+            <if test="pojo.remark!=null"> `remark`,</if>
+            <if test="pojo.userName!=null"> `user_name`,</if>
+            <if test="pojo.state!=null"> `state`,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="pojo.managerName!=null">#{pojo.managerName},</if>
+            <if test="pojo.id!=null">#{pojo.id},</if>
+            <if test="pojo.days!=null">#{pojo.days},</if>
+            <if test="pojo.content!=null">#{pojo.content},</if>
+            <if test="pojo.createAt!=null">#{pojo.createAt},</if>
+            <if test="pojo.remark!=null">#{pojo.remark},</if>
+            <if test="pojo.userName!=null">#{pojo.userName},</if>
+            <if test="pojo.state!=null">#{pojo.state},</if>
+        </trim>
+    </insert>
+
+    <!--auto generated Code-->
+    <insert id="insertList">
+        INSERT INTO leave_bill (
+        <include refid="all_column"/>
+        )VALUES
+        <foreach collection="pojos" item="pojo" index="index" separator=",">
+            (
+            #{pojo.managerName},
+            #{pojo.id},
+            #{pojo.days},
+            #{pojo.content},
+            #{pojo.createAt},
+            #{pojo.remark},
+            #{pojo.userName},
+            #{pojo.state}
+            )
+        </foreach>
+    </insert>
+
+    <!--auto generated Code-->
+    <update id="update">
+        UPDATE leave_bill
+        <set>
+            <if test="pojo.managerName != null"> `manager_name` = #{pojo.managerName}, </if>
+            <if test="pojo.id != null"> `id` = #{pojo.id}, </if>
+            <if test="pojo.days != null"> `days` = #{pojo.days}, </if>
+            <if test="pojo.content != null"> `content` = #{pojo.content}, </if>
+            <if test="pojo.createAt != null"> `create_at` = #{pojo.createAt}, </if>
+            <if test="pojo.remark != null"> `remark` = #{pojo.remark}, </if>
+            <if test="pojo.userName != null"> `user_name` = #{pojo.userName}, </if>
+            <if test="pojo.state != null"> `state` = #{pojo.state} </if>
+        </set>
+        WHERE id = #{pojo.id}
+    </update>
+</mapper>
+
