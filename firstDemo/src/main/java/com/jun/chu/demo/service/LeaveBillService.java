@@ -16,7 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class LeaveBillService {
 
     @Autowired
-    private LeaveBillDao leaveBillDao;
+    private LeaveBillDao    leaveBillDao;
+
+    @Autowired
+    private EmployeeService employeeService;
 
     @Transactional("business")
     public int insert(LeaveBill pojo) {
@@ -36,24 +39,25 @@ public class LeaveBillService {
         return updateCount;
     }
 
-    public int delete(LeaveBill pojo){
+    public int delete(LeaveBill pojo) {
         int count = leaveBillDao.delete(pojo);
-        if(count>0){
-            System.out.println("删除请假单成功,pojo="+JsonUtils.toJson(pojo));
+        if (count > 0) {
+            System.out.println("删除请假单成功,pojo=" + JsonUtils.toJson(pojo));
         }
         return count;
     }
 
-    public List<LeaveBill> findLeaveBills(){
+    public List<LeaveBill> findLeaveBills() {
         return leaveBillDao.queryAll();
     }
 
     /**
      * 模拟失败
+     * 
      * @param signal
      */
     private void mockRollBack(String signal) {
-        if("mockFail".equals(signal)){
+        if ("mockFail".equals(signal)) {
             throw new RuntimeException("mock @Transactional Fail");
         }
     }
@@ -61,7 +65,7 @@ public class LeaveBillService {
     private void initLeaveBill(LeaveBill pojo) {
         pojo.setCreateAt(new Date());
         pojo.setState(0);
-        pojo.setManagerName("default");
+        pojo.setManagerName(employeeService.getManagerNameByUserName(pojo.getUserName()));
     }
 
     public int insertSelective(LeaveBill pojo) {
@@ -71,6 +75,5 @@ public class LeaveBillService {
     public int insertList(List<LeaveBill> pojos) {
         return leaveBillDao.insertList(pojos);
     }
-
 
 }
