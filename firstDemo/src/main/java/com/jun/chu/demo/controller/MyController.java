@@ -2,15 +2,15 @@ package com.jun.chu.demo.controller;
 
 import com.jun.chu.demo.bean.DeploymentBean;
 import com.jun.chu.demo.bean.ProcessDefinitionBean;
+import com.jun.chu.demo.bean.WorkFlowBean;
 import com.jun.chu.demo.service.WorkFlowService;
+import com.jun.chu.demo.util.JsonUtils;
 import org.activiti.engine.impl.util.CollectionUtil;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,12 +36,20 @@ public class MyController {
         return buildProcessDefinitionBeanList(processDefinitions);
     }
 
+    @RequestMapping(value = "/processDefinition/{processDefinitionId}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public void deleteProcessDefinition(@RequestBody WorkFlowBean workFlowBean,
+                                        @PathVariable String processDefinitionId) {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+
+        workFlowService.deleteProcessDefinition(processDefinitionId);
+    }
+
     private List<ProcessDefinitionBean> buildProcessDefinitionBeanList(List<ProcessDefinition> processDefinitions) {
-        if(CollectionUtil.isEmpty(processDefinitions)){
+        if (CollectionUtil.isEmpty(processDefinitions)) {
             return Collections.emptyList();
         }
         List<ProcessDefinitionBean> result = new ArrayList<ProcessDefinitionBean>();
-        for(ProcessDefinition item:processDefinitions){
+        for (ProcessDefinition item : processDefinitions) {
             result.add(buildProcessDefinitionBean(item));
         }
         return result;
@@ -63,16 +71,14 @@ public class MyController {
         return result;
     }
 
-
     //////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-
     private List<DeploymentBean> buildDeploymentBeanList(List<Deployment> deployments) {
-        if(CollectionUtil.isEmpty(deployments)){
+        if (CollectionUtil.isEmpty(deployments)) {
             return Collections.emptyList();
         }
         List<DeploymentBean> result = new ArrayList<DeploymentBean>();
-        for(Deployment deployment:deployments){
+        for (Deployment deployment : deployments) {
             result.add(buildDeploymentBean(deployment));
         }
         return result;
