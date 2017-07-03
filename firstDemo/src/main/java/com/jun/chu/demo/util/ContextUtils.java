@@ -15,12 +15,12 @@ public class ContextUtils {
         return applicationContext;
     }
 
-    public static void setApplicationContext(ApplicationContext applicationContext) {
-        applicationContext = applicationContext;
+    public static void setApplicationContext(ApplicationContext context) {
+        applicationContext = context;
     }
 
     public static Object getBean(String beanId) {
-        return applicationContext.getBean(beanId);
+        return getApplicationContext().getBean(beanId);
 
     }
 }

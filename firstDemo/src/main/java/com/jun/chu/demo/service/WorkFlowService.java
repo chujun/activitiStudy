@@ -1,14 +1,13 @@
 package com.jun.chu.demo.service;
 
+import com.jun.chu.demo.bean.WorkFlowBean;
 import com.jun.chu.demo.bean.business.LeaveBill;
 import com.jun.chu.demo.enm.LeaveBillStateEnum;
 import org.activiti.bpmn.model.*;
 import org.activiti.bpmn.model.Process;
-import org.activiti.engine.FormService;
-import org.activiti.engine.RepositoryService;
-import org.activiti.engine.RuntimeService;
-import org.activiti.engine.TaskService;
+import org.activiti.engine.*;
 import org.activiti.engine.form.TaskFormData;
+import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
@@ -41,6 +40,9 @@ public class WorkFlowService {
 
     @Autowired
     private FormService       formService;
+
+    @Autowired
+    private HistoryService    historyService;
 
     /**
      * 查询流程部署列表
@@ -162,11 +164,69 @@ public class WorkFlowService {
         List<SequenceFlow> outgoingFlows = userTask.getOutgoingFlows();
         List<String> result = new ArrayList<String>();
         for (SequenceFlow sequenceFlow : outgoingFlows) {
-            if(StringUtils.isNoneBlank(sequenceFlow.getName())){
+            if (StringUtils.isNoneBlank(sequenceFlow.getName())) {
                 result.add(sequenceFlow.getName());
             }
         }
         return result;
+    }
+
+    /**
+     * 根据任务ID查询任务评论信息
+     * 
+     * @param taskId
+     */
+    public void findComments(String taskId) {
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+
+        //TODO:cj
+
+    }
+
+    /**
+     * 完成任务
+     * @param workFlowBean
+     */
+    @Transactional
+    public void completeTask(WorkFlowBean workFlowBean) {
+        //1.添加批注信息
+        //因为底层使用了Authentication.getAuthenticatedUserId()方法,所以审核人信息可以添加
+        Authentication.setAuthenticatedUserId(workFlowBean.getUserName());
+        Task task = taskService.createTaskQuery().taskId(workFlowBean.getTaskId()).singleResult();
+        taskService.addComment(workFlowBean.getTaskId(), task.getProcessInstanceId(), workFlowBean.getComment());
+
+        //2.设置流程变量
+        Map<String, Object> variables = new HashMap<String, Object>();
+        if (StringUtils.isNoneBlank(workFlowBean.getOutcome()) && !"默认提交".equals(workFlowBean.getOutcome())) {
+            variables.put("outcome", workFlowBean.getOutcome());
+        }
+        //3.提交任务
+        taskService.complete(workFlowBean.getTaskId(), variables);
+        //4.判断流程状态是否已经完成
+        if (haveFinished(task.getProcessInstanceId())) {
+            finishLeaveBillProcess(workFlowBean);
+        }
+    }
+
+    /**
+     * 完成请假单状态
+     * 
+     * @param workFlowBean
+     */
+    private void finishLeaveBillProcess(WorkFlowBean workFlowBean) {
+        String businessKey = getBusinessKeyByTaskId(workFlowBean.getTaskId());
+        String businessId = org.springframework.util.StringUtils.isEmpty(businessKey) ? ""
+                : businessKey.substring(businessKey.lastIndexOf(".") + 1);
+        LeaveBill leaveBill = leaveBillService.findLeaveBillById(Long.valueOf(businessId));
+        //更新请假单状态为完成状态
+        leaveBill.setState(LeaveBillStateEnum.FINISH.getValue());
+        leaveBillService.update(leaveBill);
+    }
+
+    private boolean haveFinished(String processInstanceId) {
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
+                .processInstanceId(processInstanceId).singleResult();
+        return null == processInstance ? true : false;
     }
 
     /**

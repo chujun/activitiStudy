@@ -115,6 +115,14 @@ public class MyController {
         return workFlowService.getOutgoingFlowNames(taskId);
     }
 
+    @RequestMapping(value = "/task/complete/{taskId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public void completeTask(@RequestBody WorkFlowBean workFlowBean, @PathVariable String taskId) throws IOException {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+        workFlowBean.setTaskId(taskId);
+
+        workFlowService.completeTask(workFlowBean);
+    }
+
     private TaskFormDataVo buildTaskFormDataVo(TaskFormData taskFormData) {
         if (taskFormData == null) {
             return null;

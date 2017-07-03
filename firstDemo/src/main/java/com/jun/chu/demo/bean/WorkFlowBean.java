@@ -9,6 +9,26 @@ public class WorkFlowBean {
 
     private String taskId;
 
+    private String outcome;
+
+    private String comment;
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public String getOutcome() {
+        return outcome;
+    }
+
+    public void setOutcome(String outcome) {
+        this.outcome = outcome;
+    }
+
     public String getTaskId() {
         return taskId;
     }
