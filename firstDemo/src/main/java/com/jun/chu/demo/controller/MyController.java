@@ -1,17 +1,22 @@
 package com.jun.chu.demo.controller;
 
+import com.jun.chu.demo.bean.business.LeaveBill;
 import com.jun.chu.demo.bean.vo.DeploymentVo;
 import com.jun.chu.demo.bean.vo.ProcessDefinitionVo;
 import com.jun.chu.demo.bean.WorkFlowBean;
+import com.jun.chu.demo.bean.vo.TaskFormDataVo;
 import com.jun.chu.demo.bean.vo.TaskVo;
+import com.jun.chu.demo.service.LeaveBillService;
 import com.jun.chu.demo.service.WorkFlowService;
 import com.jun.chu.demo.util.JsonUtils;
+import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.impl.util.CollectionUtil;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -28,7 +33,10 @@ import java.util.List;
 @RestController
 public class MyController {
     @Autowired
-    private WorkFlowService workFlowService;
+    private WorkFlowService  workFlowService;
+
+    @Autowired
+    private LeaveBillService leaveBillService;
 
     @RequestMapping(value = "/deployments", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<DeploymentVo> getTasks() {
@@ -74,6 +82,47 @@ public class MyController {
 
         List<Task> tasks = workFlowService.findTaskByAssignee(workFlowBean.getUserName());
         return buildTaskVoList(tasks);
+    }
+
+    @RequestMapping(value = "/taskFormData/{taskId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public TaskFormDataVo findTaskFormData(@RequestBody WorkFlowBean workFlowBean, @PathVariable String taskId)
+            throws IOException {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+
+        TaskFormData taskFormData = workFlowService.getFormByTaskId(taskId);
+        return buildTaskFormDataVo(taskFormData);
+    }
+
+    @RequestMapping(value = "/leaveBill/task/{taskId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public LeaveBill findLeaveBillByTaskId(@RequestBody WorkFlowBean workFlowBean, @PathVariable String taskId)
+            throws IOException {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+
+        //1.根据任务ID查询业务key
+        String businessKey = workFlowService.getBusinessKeyByTaskId(taskId);
+        String businessId = StringUtils.isEmpty(businessKey) ? ""
+                : businessKey.substring(businessKey.lastIndexOf(".") + 1);
+
+        //2.根据请假单ID查询请假单信息
+        return leaveBillService.findLeaveBillById(Long.valueOf(businessId));
+    }
+
+    @RequestMapping(value = "/processDefinition/sequenceFlow/taskId/{taskId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<String> getOutgoingFlowNames(@RequestBody WorkFlowBean workFlowBean, @PathVariable String taskId)
+            throws IOException {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+
+        return workFlowService.getOutgoingFlowNames(taskId);
+    }
+
+    private TaskFormDataVo buildTaskFormDataVo(TaskFormData taskFormData) {
+        if (taskFormData == null) {
+            return null;
+        }
+        TaskFormDataVo result = new TaskFormDataVo();
+        result.setFormKey(taskFormData.getFormKey());
+        result.setDeploymentId(taskFormData.getDeploymentId());
+        return result;
     }
 
     private List<TaskVo> buildTaskVoList(List<Task> tasks) {

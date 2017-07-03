@@ -7,6 +7,16 @@ public class WorkFlowBean {
     private Long userId;
     private String userName;
 
+    private String taskId;
+
+    public String getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
+    }
+
     public Long getUserId() {
         return userId;
     }

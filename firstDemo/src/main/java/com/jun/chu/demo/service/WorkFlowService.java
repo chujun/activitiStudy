@@ -2,21 +2,24 @@ package com.jun.chu.demo.service;
 
 import com.jun.chu.demo.bean.business.LeaveBill;
 import com.jun.chu.demo.enm.LeaveBillStateEnum;
+import org.activiti.bpmn.model.*;
+import org.activiti.bpmn.model.Process;
+import org.activiti.engine.FormService;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by chujun on 2017/7/3.
@@ -35,6 +38,9 @@ public class WorkFlowService {
 
     @Autowired
     private TaskService       taskService;
+
+    @Autowired
+    private FormService       formService;
 
     /**
      * 查询流程部署列表
@@ -108,5 +114,82 @@ public class WorkFlowService {
      */
     public InputStream viewProcessDefinitionDiagram(String processDefinitionId) {
         return repositoryService.getProcessDiagram(processDefinitionId);
+    }
+
+    /**
+     * 根据任务ID查询任务表单数据
+     * 
+     * @param taskId
+     * @return
+     */
+    public TaskFormData getFormByTaskId(String taskId) {
+        TaskFormData taskFormData = formService.getTaskFormData(taskId);
+        return taskFormData;
+    }
+
+    /**
+     * 根据任务ID查询业务key
+     * 
+     * @param taskId
+     * @return
+     */
+    public String getBusinessKeyByTaskId(String taskId) {
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
+                .processInstanceId(task.getProcessInstanceId()).singleResult();
+
+        return processInstance.getBusinessKey();
+    }
+
+    /**
+     * 根据任务ID查询流程定义中当前任务节点的所有输出流向的名称集合 TODO:cj to be studied:BpmnModel
+     * 
+     * @param taskId
+     * @return
+     */
+    public List<String> getOutgoingFlowNames(String taskId) {
+        //根据任务ID查询任务
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+
+        //十分重要的流程定义对象
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(task.getProcessDefinitionId());
+
+        //选择当前活动节点
+        UserTask userTask = selectUserTask(bpmnModel.getProcesses().get(0), task.getTaskDefinitionKey());
+
+        //获取UserTask的所有输出流向的名称集合
+        List<SequenceFlow> outgoingFlows = userTask.getOutgoingFlows();
+        List<String> result = new ArrayList<String>();
+        for (SequenceFlow sequenceFlow : outgoingFlows) {
+            if(StringUtils.isNoneBlank(sequenceFlow.getName())){
+                result.add(sequenceFlow.getName());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 根据节点名称选择流程定义中对应的用户任务节点
+     * 
+     * @param process
+     * @param activityId
+     * @return
+     */
+    private UserTask selectUserTask(Process process, String activityId) {
+        System.out.println("selectUserTask:" + activityId);
+        if (null == activityId) {
+            return null;
+        }
+        Collection<FlowElement> flowElements = process.getFlowElements();
+        for (FlowElement item : flowElements) {
+            if (item instanceof UserTask) {
+                UserTask userTask = (UserTask) item;
+                if (userTask.getId().equals(activityId)) {
+                    return userTask;
+                }
+            }
+        }
+        return null;
     }
 }
