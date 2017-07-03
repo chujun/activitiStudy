@@ -25,7 +25,18 @@ public class LeaveBillService {
         if (count > 0) {
             System.out.println("新增请假单成功,pojo=" + JsonUtils.toJson(pojo));
         }
+        mockRollBack(pojo.getRemark());
         return count;
+    }
+
+    /**
+     * 模拟失败
+     * @param signal
+     */
+    private void mockRollBack(String signal) {
+        if("mockFail".equals(signal)){
+            throw new RuntimeException("mock @Transactional Fail");
+        }
     }
 
     private void initLeaveBill(LeaveBill pojo) {
