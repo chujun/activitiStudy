@@ -8,6 +8,7 @@ import org.activiti.engine.repository.ProcessDefinitionQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -55,5 +56,14 @@ public class WorkFlowService {
         }else{
             System.out.println("没有发现该流程定义:"+processDefinitionId);
         }
+    }
+
+    /**
+     * 根据流程定义ID查询流程图
+     * @param processDefinitionId
+     * @return
+     */
+    public InputStream viewProcessDefinitionDiagram(String processDefinitionId){
+        return repositoryService.getProcessDiagram(processDefinitionId);
     }
 }

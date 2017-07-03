@@ -8,10 +8,16 @@ import com.jun.chu.demo.util.JsonUtils;
 import org.activiti.engine.impl.util.CollectionUtil;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,6 +48,42 @@ public class MyController {
         System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
 
         workFlowService.deleteProcessDefinition(processDefinitionId);
+    }
+
+    @RequestMapping(value = "/processDefinitionDiagram/{processDefinitionId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public void viewProcessDefinitionDiagram(HttpServletResponse response, @RequestBody WorkFlowBean workFlowBean,
+                                             @PathVariable String processDefinitionId) throws IOException {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+
+        InputStream diagramInputStream = workFlowService.viewProcessDefinitionDiagram(processDefinitionId);
+        outputDiagram(response, diagramInputStream);
+    }
+
+    private void outputDiagram(HttpServletResponse response, InputStream diagramInputStream) throws IOException {
+        response.setContentType("image/png");
+        OutputStream outputStream = null;
+        try {
+            outputStream = response.getOutputStream();
+            byte[] data = new byte[1024];
+            int length = -1;
+            while ((length = diagramInputStream.read(data)) > -1) {
+                outputStream.write(data);
+            }
+            diagramInputStream.close();
+            outputStream.flush();
+            outputStream.close();
+        } finally {
+            try {
+                if (null != diagramInputStream) {
+                    diagramInputStream.close();
+                }
+                if (null != outputStream) {
+                    outputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private List<ProcessDefinitionBean> buildProcessDefinitionBeanList(List<ProcessDefinition> processDefinitions) {
