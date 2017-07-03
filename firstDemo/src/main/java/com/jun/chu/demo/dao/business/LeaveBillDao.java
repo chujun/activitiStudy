@@ -15,4 +15,8 @@ public interface LeaveBillDao {
     int insertList(@Param("pojos") List<LeaveBill> pojo);
 
     int update(@Param("pojo") LeaveBill pojo);
+
+    List<LeaveBill> queryAll();
+
+    int delete(@Param("pojo")LeaveBill pojo);
 }

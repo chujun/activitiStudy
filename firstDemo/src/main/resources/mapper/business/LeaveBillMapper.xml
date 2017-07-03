@@ -95,16 +95,20 @@
     <update id="update">
         UPDATE leave_bill
         <set>
-            <if test="pojo.managerName != null"> `manager_name` = #{pojo.managerName}, </if>
-            <if test="pojo.id != null"> `id` = #{pojo.id}, </if>
             <if test="pojo.days != null"> `days` = #{pojo.days}, </if>
             <if test="pojo.content != null"> `content` = #{pojo.content}, </if>
-            <if test="pojo.createAt != null"> `create_at` = #{pojo.createAt}, </if>
             <if test="pojo.remark != null"> `remark` = #{pojo.remark}, </if>
-            <if test="pojo.userName != null"> `user_name` = #{pojo.userName}, </if>
-            <if test="pojo.state != null"> `state` = #{pojo.state} </if>
         </set>
         WHERE id = #{pojo.id}
     </update>
+
+    <delete id="delete">
+        DELETE from leave_bill
+        where id = #{pojo.id}
+    </delete>
+
+    <select id="queryAll" resultMap="AllColumnMap">
+        select * from leave_bill
+    </select>
 </mapper>
 

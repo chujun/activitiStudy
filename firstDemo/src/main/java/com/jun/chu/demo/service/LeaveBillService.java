@@ -29,6 +29,25 @@ public class LeaveBillService {
         return count;
     }
 
+    @Transactional("business")
+    public int update(LeaveBill pojo) {
+        int updateCount = leaveBillDao.update(pojo);
+        mockRollBack(pojo.getRemark());
+        return updateCount;
+    }
+
+    public int delete(LeaveBill pojo){
+        int count = leaveBillDao.delete(pojo);
+        if(count>0){
+            System.out.println("删除请假单成功,pojo="+JsonUtils.toJson(pojo));
+        }
+        return count;
+    }
+
+    public List<LeaveBill> findLeaveBills(){
+        return leaveBillDao.queryAll();
+    }
+
     /**
      * 模拟失败
      * @param signal
@@ -53,7 +72,5 @@ public class LeaveBillService {
         return leaveBillDao.insertList(pojos);
     }
 
-    public int update(LeaveBill pojo) {
-        return leaveBillDao.update(pojo);
-    }
+
 }
