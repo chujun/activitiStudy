@@ -28,13 +28,13 @@ public class ManagerTaskListener implements TaskListener {
         System.out.println("代理的任务信息:" + delegateTask);
         //1.获取当前分配人
         String authenticatedUserId = Authentication.getAuthenticatedUserId();
-        String assignee = delegateTask.getAssignee();
+        //String assignee = delegateTask.getAssignee();
 
         //2.获取员工服务
         EmployeeService employeeService = (EmployeeService) ContextUtils.getBean("employeeService");
 
         //3.根据员工名称查询管理员名称
-        String managerName = employeeService.getManagerNameByUserName(assignee);
+        String managerName = employeeService.getManagerNameByUserName(authenticatedUserId);
 
         //4.设置任务的分配人
         delegateTask.setAssignee(managerName);

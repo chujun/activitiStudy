@@ -189,6 +189,11 @@ public class WorkFlowService {
      */
     @Transactional
     public void completeTask(WorkFlowBean workFlowBean) {
+        //0.需要提交任务前获取businessKey,因为最终流程完成后流程实例就查询不到了,只能去历史任务中查询了
+        //TODO:cj to be done
+        String businessKey = getBusinessKeyByTaskId(workFlowBean.getTaskId());
+        String businessId = org.springframework.util.StringUtils.isEmpty(businessKey) ? ""
+                : businessKey.substring(businessKey.lastIndexOf(".") + 1);
         //1.添加批注信息
         //因为底层使用了Authentication.getAuthenticatedUserId()方法,所以审核人信息可以添加
         Authentication.setAuthenticatedUserId(workFlowBean.getUserName());
@@ -204,23 +209,12 @@ public class WorkFlowService {
         taskService.complete(workFlowBean.getTaskId(), variables);
         //4.判断流程状态是否已经完成
         if (haveFinished(task.getProcessInstanceId())) {
-            finishLeaveBillProcess(workFlowBean);
-        }
-    }
+            //更新请假单状态为完成状态
+            LeaveBill leaveBill = leaveBillService.findLeaveBillById(Long.valueOf(businessId));
 
-    /**
-     * 完成请假单状态
-     * 
-     * @param workFlowBean
-     */
-    private void finishLeaveBillProcess(WorkFlowBean workFlowBean) {
-        String businessKey = getBusinessKeyByTaskId(workFlowBean.getTaskId());
-        String businessId = org.springframework.util.StringUtils.isEmpty(businessKey) ? ""
-                : businessKey.substring(businessKey.lastIndexOf(".") + 1);
-        LeaveBill leaveBill = leaveBillService.findLeaveBillById(Long.valueOf(businessId));
-        //更新请假单状态为完成状态
-        leaveBill.setState(LeaveBillStateEnum.FINISH.getValue());
-        leaveBillService.update(leaveBill);
+            leaveBill.setState(LeaveBillStateEnum.FINISH.getValue());
+            leaveBillService.update(leaveBill);
+        }
     }
 
     private boolean haveFinished(String processInstanceId) {
