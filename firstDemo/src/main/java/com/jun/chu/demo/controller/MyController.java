@@ -6,6 +6,7 @@ import com.jun.chu.demo.bean.WorkFlowBean;
 import com.jun.chu.demo.service.LeaveBillService;
 import com.jun.chu.demo.service.WorkFlowService;
 import com.jun.chu.demo.util.JsonUtils;
+import org.activiti.bpmn.model.GraphicInfo;
 import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.impl.util.CollectionUtil;
 import org.activiti.engine.repository.Deployment;
@@ -112,6 +113,16 @@ public class MyController {
 
         return workFlowService.getOutgoingFlowNames(taskId);
     }
+
+    @RequestMapping(value = "/processDefinition/activeActivity/graphicInfo/{taskId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public GraphicInfo getGraphicInfo(@RequestBody WorkFlowBean workFlowBean, @PathVariable String taskId)
+            throws IOException {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+
+        return workFlowService.getGraphicInfo(taskId);
+    }
+
+
 
     @RequestMapping(value = "/task/complete/{taskId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public void completeTask(@RequestBody WorkFlowBean workFlowBean, @PathVariable String taskId) throws IOException {

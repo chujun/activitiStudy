@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import javax.xml.ws.RespectBinding;
 import java.io.InputStream;
 import java.util.*;
 
@@ -174,7 +175,34 @@ public class WorkFlowService {
                 result.add(sequenceFlow.getName());
             }
         }
+
         return result;
+    }
+
+    /**
+     * 通过任务ID查询当前活动节点图像信息
+     * @param taskId
+     * @return
+     */
+    public GraphicInfo getGraphicInfo(String taskId) {
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+
+        //获取流程定义对象
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(task.getProcessDefinitionId());
+
+        //获取流程定义位置信息
+//        <bpmndi:BPMNDiagram id="BPMNDiagram_LeaveBill">
+//          <bpmndi:BPMNPlane bpmnElement="LeaveBill" id="BPMNPlane_LeaveBill">
+//          <bpmndi:BPMNShape bpmnElement="startevent1" id="BPMNShape_startevent1">
+//              <omgdc:Bounds height="35.0" width="35.0" x="215.0" y="40.0"></omgdc:Bounds>
+//          </bpmndi:BPMNShape>
+//          <bpmndi:BPMNShape bpmnElement="usertask1" id="BPMNShape_usertask1">
+//              <omgdc:Bounds height="55.0" width="105.0" x="180.0" y="140.0"></omgdc:Bounds>
+//          </bpmndi:BPMNShape>
+        Map<String, GraphicInfo> locationMap = bpmnModel.getLocationMap();
+        GraphicInfo graphicInfo = locationMap.get(task.getTaskDefinitionKey());
+
+        return graphicInfo;
     }
 
     /**
@@ -186,7 +214,6 @@ public class WorkFlowService {
         Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
 
         //方法一:使用任务ID查询所有历史任务ID
-        //TODO:cj
         List<Comment> resultBefore = new ArrayList<Comment>();
         //利用流程实例ID查询历史任务列表
         List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery()
