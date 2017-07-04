@@ -127,9 +127,20 @@ public class MyController {
         System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
         workFlowBean.setTaskId(taskId);
 
-        List<Comment> comments = workFlowService.findAllComments(taskId);
+        List<Comment> comments = workFlowService.findAllCommentsByTaskId(taskId);
         return buildCommentVoList(comments);
     }
+
+    @RequestMapping(value = "/leaveBill/comments/{leaveBillId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<CommentVo> findAllCommentsByBusinessId(@RequestBody WorkFlowBean workFlowBean, @PathVariable String leaveBillId)
+            throws IOException {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+
+        List<Comment> comments = workFlowService.findAllCommentsByBusinessId(leaveBillId,LeaveBill.class);
+        return buildCommentVoList(comments);
+    }
+
+
 
     private List<CommentVo> buildCommentVoList(List<Comment> comments) {
         if (CollectionUtil.isEmpty(comments)) {
