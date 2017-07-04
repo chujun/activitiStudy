@@ -1,11 +1,8 @@
 package com.jun.chu.demo.controller;
 
 import com.jun.chu.demo.bean.business.LeaveBill;
-import com.jun.chu.demo.bean.vo.DeploymentVo;
-import com.jun.chu.demo.bean.vo.ProcessDefinitionVo;
+import com.jun.chu.demo.bean.vo.*;
 import com.jun.chu.demo.bean.WorkFlowBean;
-import com.jun.chu.demo.bean.vo.TaskFormDataVo;
-import com.jun.chu.demo.bean.vo.TaskVo;
 import com.jun.chu.demo.service.LeaveBillService;
 import com.jun.chu.demo.service.WorkFlowService;
 import com.jun.chu.demo.util.JsonUtils;
@@ -13,6 +10,7 @@ import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.impl.util.CollectionUtil;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
+import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -121,6 +119,42 @@ public class MyController {
         workFlowBean.setTaskId(taskId);
 
         workFlowService.completeTask(workFlowBean);
+    }
+
+    @RequestMapping(value = "/task/comments/{taskId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<CommentVo> findAllComments(@RequestBody WorkFlowBean workFlowBean, @PathVariable String taskId)
+            throws IOException {
+        System.out.println("workFlowBean:" + JsonUtils.toJson(workFlowBean));
+        workFlowBean.setTaskId(taskId);
+
+        List<Comment> comments = workFlowService.findAllComments(taskId);
+        return buildCommentVoList(comments);
+    }
+
+    private List<CommentVo> buildCommentVoList(List<Comment> comments) {
+        if (CollectionUtil.isEmpty(comments)) {
+            return Collections.emptyList();
+        }
+        List<CommentVo> result = new ArrayList<CommentVo>();
+        for (Comment item : comments) {
+            result.add(buildCommentVo(item));
+        }
+        return result;
+    }
+
+    private CommentVo buildCommentVo(Comment item) {
+        if (item == null) {
+            return null;
+        }
+        CommentVo result = new CommentVo();
+        result.setId(item.getId());
+        result.setTaskId(item.getTaskId());
+        result.setType(item.getType());
+        result.setUserId(item.getUserId());
+        result.setTime(item.getTime());
+        result.setProcessInstanceId(item.getProcessInstanceId());
+        result.setFullMessage(item.getFullMessage());
+        return result;
     }
 
     private TaskFormDataVo buildTaskFormDataVo(TaskFormData taskFormData) {

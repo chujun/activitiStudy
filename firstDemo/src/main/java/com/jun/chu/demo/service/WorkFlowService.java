@@ -7,15 +7,18 @@ import org.activiti.bpmn.model.*;
 import org.activiti.bpmn.model.Process;
 import org.activiti.engine.*;
 import org.activiti.engine.form.TaskFormData;
+import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.io.InputStream;
 import java.util.*;
@@ -172,19 +175,34 @@ public class WorkFlowService {
     }
 
     /**
-     * 根据任务ID查询任务评论信息
-     * 
+     * 根据任务ID查询所有评论信息
+     *
      * @param taskId
      */
-    public void findComments(String taskId) {
+    public List<Comment> findAllComments(String taskId) {
         Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
 
+        //方法一:使用任务ID查询所有历史任务ID
         //TODO:cj
+        List<Comment> resultBefore = new ArrayList<Comment>();
+        //利用流程实例ID查询历史任务列表
+        List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery()
+                .processInstanceId(task.getProcessInstanceId()).list();
+        //遍历集合,获取每个任务ID
+        if (!CollectionUtils.isEmpty(list)) {
+            for (HistoricTaskInstance item : list) {
+                resultBefore.addAll(taskService.getTaskComments(item.getId()));
+            }
+        }
 
+        //方法二:使用流程实例ID查询所有评论信息
+        List<Comment> result = taskService.getProcessInstanceComments(task.getProcessInstanceId());
+        return result;
     }
 
     /**
      * 完成任务
+     * 
      * @param workFlowBean
      */
     @Transactional
